@@ -1,101 +1,9 @@
-/*import React, { useEffect, useState } from 'react';
-import {
-  ContainerOverlay,
-  ContainerWrapper,
-  ContainerModal,
-  ContainerHeader,
-  TitleComponent,
-  CloseButtonComponent,
-  ContainerBody,
-  TextComponent,
-  InputComponent,
-  ContainerFooter,
-  ButtonSaveComponent,
-} from './styled';
-
-const ModalComponent = ({ isShowing, hide, title, id, userSelected }) => {
-
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [perfil, setPerfil] = useState("");
-  const [activeButton, setActiveButton] = useState(true);
-
-  useEffect(() => {
-    if (username !== "" && name !== "" && email !== "" && perfil !== "") {
-      setActiveButton(false);
-    }
-  }, [userSelected, username, name, email, perfil]);
-
-  /*const onPressSaveUser = () => {
-    dispatch(saveUser({
-      username: username,
-      name: name,
-      email: email,
-      perfil: perfil,
-    }));
-    setUsername("");
-    setName("");
-    setEmail("");
-    setPerfil("");
-    hide();
-  }
-
-  const onPressEditUser = () => {
-    dispatch(editUser({
-      id: userSelected,
-      username: username,
-      name: name,
-      email: email,
-      perfil: perfil,
-    }));
-    setUsername("");
-    setName("");
-    setEmail("");
-    setPerfil("");
-    hide();
-  }
-
-  return isShowing ? (
-    <>
-      <ContainerOverlay />
-      <ContainerWrapper>
-        <ContainerModal>
-          <ContainerHeader>
-            <TitleComponent>{title}</TitleComponent>
-            <CloseButtonComponent onPress={hide}>
-              {"X"}
-            </CloseButtonComponent>
-          </ContainerHeader>
-
-              <ContainerBody>
-                <TextComponent>Nombre de usuario</TextComponent>
-                <InputComponent value={userSelected === 0 ? username : username} onChangeText={setUsername} />
-                <TextComponent>Nombre</TextComponent>
-                <InputComponent value={userSelected === 0 ? name : name} onChangeText={setName} />
-                <TextComponent>Correo Electronico</TextComponent>
-                <InputComponent value={userSelected === 0 ? email : email} onChangeText={setEmail} />
-                <TextComponent>Perfil</TextComponent>
-                <InputComponent value={userSelected === 0 ? perfil : perfil} onChangeText={setPerfil} />
-              </ContainerBody>
-              <ContainerFooter>
-                <ButtonSaveComponent disabled={activeButton} onPress={() => { title === 'Agregar usuario' ? "onPressSaveUser()" : "onPressEditUser()" }}> Guardar</ButtonSaveComponent>
-              </ContainerFooter>
-
-        </ContainerModal>
-      </ContainerWrapper>
-    </>
-  ) : null
-
-}
-
-
-export default ModalComponent;*/
-
-
+import { useMutation } from "@apollo/client";
 import React, { useState } from "react";
 import { Modal } from "react-native";
 import ButtonComponent from "../../../../commons/components/button-component";
+import { ADD_CLIENT, SET_CLIENT } from "../../../../graphql/clients/mutations";
+import { GET_CLIENTS } from "../../../../graphql/clients/queries";
 import { 
   ContainerOverlay, 
   ContainerModal, 
@@ -109,15 +17,35 @@ import {
 } from "./styled";
 
 const ModalComponent = (props) => {
+  const [addClient] = useMutation(ADD_CLIENT, {
+    refetchQueries: [{query: GET_CLIENTS}]
+  });
+  const [setClient] = useMutation(SET_CLIENT);
   const {title, clientSelected, modalVisible, setModalVisible} = props;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [cedula, setCedula] = useState("");
   const [cellphone, setCellphone] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
 
-  const HandleSave = () => {
+  const onPressSaveClient = () => {
+    addClient({ variables: { firstName, lastName, cedula, cellphone, address:{streetAddress} }})
+    setFirstName("");
+    setLastName("");
+    setCedula("");
+    setCellphone("");
+    setStreetAddress("");
     setModalVisible(!modalVisible);
-    console.log(clientSelected);
+  }
+
+  const onPressEditClient = () => {
+    setClient({ variables: { id: clientSelected, firstName, lastName, address:{streetAddress} }})
+    setFirstName("");
+    setLastName("");
+    setCedula("");
+    setCellphone("");
+    setStreetAddress("");
+    setModalVisible(!modalVisible);
   }
 
   return (
@@ -147,9 +75,11 @@ const ModalComponent = (props) => {
               <InputComponent value={cedula} onChangeText={setCedula} />
               <TextComponent>Número de celular</TextComponent>
               <InputComponent value={cellphone} onChangeText={setCellphone} />
+              <TextComponent>Dirección</TextComponent>
+              <InputComponent value={streetAddress} onChangeText={setStreetAddress} />
             </ContainerBody>
             <ContainerButtons>
-              <ButtonComponent title="Guardar" onClick={HandleSave}/>
+              <ButtonComponent title={clientSelected == 0 ? "Guardar" : "Editar"} onClick={clientSelected == 0 ?  onPressSaveClient : onPressEditClient}/>
             </ContainerButtons>
           </ContainerModal>
         </ContainerOverlay>
